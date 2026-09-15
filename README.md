@@ -108,9 +108,9 @@ Only `*.example.*` templates are committed.
 ## Credits
 
 - [FEX-Emu](https://github.com/FEX-Emu/FEX) — x86_64 → ARM64 emulation.
-- [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64) — reference for the Satisfactory ARM64 container.
-- [FactoCord3](https://github.com/edg-l/factocord3) — Factorio ⇄ Discord bridge.
-- [Simple Discord Link](https://sdlink.fdd-docs.com/) — Minecraft ⇄ Discord bridge.
+- [sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker](https://github.com/sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker) — reference for the Satisfactory ARM64 container.
+- [maxsupermanhd/FactoCord-3.0](https://github.com/maxsupermanhd/FactoCord-3.0) — Factorio ⇄ Discord bridge.
+- [hypherionmc/sdlink](https://github.com/hypherionmc/sdlink) — Minecraft ⇄ Discord bridge.
 - Factorio, Minecraft, and Satisfactory — property of their respective owners; no game
   content is distributed here.
 

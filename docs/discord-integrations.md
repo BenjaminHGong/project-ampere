@@ -9,7 +9,7 @@ administrative commands/status are available from Discord without touching the b
 
 ## Factorio — FactoCord3
 
-[FactoCord3](https://github.com/edg-l/factocord3) is a Go bot that acts as both the
+[FactoCord3](https://github.com/maxsupermanhd/FactoCord-3.0) is a Go bot that acts as both the
 process supervisor and the chat bridge. It launches the Factorio binary with
 `--start-server`, watches its console, and relays messages between Discord and the
 game. The tracked template is `factorio-server/config/factocord.config.example.json`.
@@ -59,7 +59,7 @@ game events become Discord messages without any round-trip through the bot API.
 
 ## Minecraft — Simple Discord Link
 
-[Simple Discord Link](https://sdlink.fdd-docs.com/) runs as a normal NeoForge mod
+[Simple Discord Link](https://github.com/hypherionmc/sdlink) runs as a normal NeoForge mod
 and manages its own bot. The live config (`config/simple-discord-link/simple-discord-link.toml`)
 is gitignored — it stores the bot token AES-encrypted along with webhook secrets;
 the tracked `…-link.example.toml` is the sanitized template.
