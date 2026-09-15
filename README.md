@@ -1,119 +1,131 @@
 # Project Ampere
 
-Self-hosted, always-on game servers running concurrently on a single **ARM64 Oracle Cloud**
-compute instance. Factorio (Space Age), a modded NeoForge Minecraft server, and Satisfactory —
-plus x86_64-only game binaries forced to run on ARM64 via a from-source **FEX-Emu** build.
+> Three always-on game servers — **Factorio (Space Age)**, a modded **NeoForge Minecraft**,
+> and **Satisfactory** — running concurrently on a single **ARM64 Oracle Cloud (Ampere A1)**
+> instance, including the games that were only ever shipped as **x86_64** binaries.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ```
-                 ┌──────────────────────────────────────────────────────────┐
-                 │  Oracle Cloud ARM64 (Ampere A1, Ubuntu)                   │
-                 │                                                          │
-                 │   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐ │
-   Discord ──────▶│  Factorio      │   │  Minecraft    │   │ Satisfactory │ │
-   (FactoCord3 / │  (Space Age)   │   │ (NeoForge 21) │   │  (Docker)    │ │
-    Simple Disc.)│  screen + auto │   │  screen + auto│   │ compose +    │ │
-                 │  restart       │   │  restart      │   │ FEX-Emu      │ │
-                 │                │   │               │   │              │ │
-                 │  x86_64 ──FEX──▶ x86_64 ──JVM──┘   │   x86_64 ─FEX──┘ │ │
-                 └──────────────────────────────────────────────────────────┘
+                 ┌─────────────────────────────────────────────────────────────┐
+                 │  Oracle Cloud · Ampere A1 · ARM64 · Ubuntu                  │
+                 │                                                             │
+  Discord ──────▶│   Factorio          Minecraft         Satisfactory          │
+  (FactoCord3 │   Space Age headless  NeoForge 1.21.1   Docker Compose        │
+   S-DiscLnk) │   screen + auto-rs    screen + 16G JVM   FEX-Emu (x86_64)     │
+                 │                                                             │
+                 │   x86_64 ──FEX────▶ x86_64 ──JVM──┘  x86_64 ──FEX──────┘  │
+                 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Highlights
+## Why this exists
 
-- **x86_64 on ARM64 via FEX-Emu** — built FEX-Emu from source with Clang/LLVM, LLD, and
-  `binfmt_misc` inside the Satisfactory Docker image (`satisfactory-server/Dockerfile`), with
-  runtime isolation per service.
-- **Lifecycle automation in Bash** — `screen`-based supervisors with automatic crash recovery
-  and ghost-process cleanup (`factorio-server/run.sh`, `minecraft-server/run.sh`).
-- **Safe update pipeline** — Factorio updates back up saves, mods, and configuration before
-  downloading and deploying a new headless build (`factorio-server/update_factorio.sh`).
-- **Docker Compose** with persistent volumes, explicit port mappings, and `restart: unless-stopped`
-  (`satisfactory-server/docker-compose.yml`).
-- **Discord ⇄ game integrations** — bidirectional chat relay, player join/leave presence,
-  advancement/research notifications, moderation & status events, verified-account linking,
-  and administrative commands.
-- **SteamCMD**-driven installation and validation for the Satisfactory dedicated server
-  (`satisfactory-server/init-server.sh`).
+Oracle's free-tier Ampere A1 (ARM) instances are absurd value for hosting game
+servers _if_ your games run on ARM64. Factorio and Minecraft compile/run natively on
+ARM, but a lot of gaming software — *cough* Satisfactory *cough* — only ships x86_64
+binaries. This repo is the answer: an operator toolkit that runs all three headless
+servers on one machine, uses [FEX-Emu](docs/fex-emu-on-arm64.md) to translate
+x86_64→ARM64 for the binaries that need it, keeps everything alive with Bash +
+`screen` + Docker Compose, and wires the whole thing into Discord.
+
+## The interesting parts
+
+| | |
+| --- | --- |
+| **ARM64 translation** | FEX-Emu built from source (clang/LLVM/LLD + `binfmt_misc`) so x86_64-only Satisfactory/SteamCMD runs transparently on ARM64. → [`docs/fex-emu-on-arm64.md`](docs/fex-emu-on-arm64.md) |
+| **Lifecycle automation** | `screen` supervisors with ghost-process cleanup & auto-restart; idempotent host bootstrap; containers restart automatically. → [`docs/architecture.md`](docs/architecture.md) |
+| **Safe updates** | Factorio updates back up saves+mods+config **before** downloading/deploying a new headless build. |
+| **Discord integration** | Bidirectional chat, player presence, deaths, **research notifications**, moderation alerts, admin commands, and a custom in-save scenario script. → [`docs/discord-integrations.md`](docs/discord-integrations.md) |
 
 ## Repository layout
 
 ```
-├── factorio-server/         Factorio headless (Space Age) + FactoCord3 Discord bridge
-└── minecraft-server/        NeoForge 1.21.1 modpack + Simple Discord Link
-└── satisfactory-server/     Dockerized Satisfactory dedicated server on ARM64
+├── README.md                    ← you are here
+├── LICENSE                      ← MIT
+├── docs/
+│   ├── architecture.md          ← topology, ports, storage, supervision
+│   ├── fex-emu-on-arm64.md      ← the ARM64 translation story
+│   └── discord-integrations.md  ← chat bridges + custom scenario
+├── scripts/
+│   ├── bootstrap.sh             ← provision an Ubuntu host for this repo
+│   └── validate_configs.py      ← CI + local config template checks
+├── .github/workflows/validate.yml
+├── factorio-server/
+│   ├── run.sh                   ← FactoCord3 supervisor loop (auto-restart)
+│   ├── update_factorio.sh       ← backup → download → restore → restart
+│   ├── scenario/control.lua     ← custom event → Discord scenario
+│   └── config/*.example.json    ← FactoCord3 / server-settings / mods templates
+├── minecraft-server/
+│   ├── run.sh                   ← screen-managed NeoForge launch
+│   ├── user_jvm_args.txt        ← 16 GB tuned heap
+│   ├── server.properties        ← MOTD, PvP-off, command blocks
+│   └── config/                  ← ~45 mods tuned + Simple Discord Link template
+└── satisfactory-server/
+    ├── Dockerfile               ← FEX build + SteamCMD image
+    ├── docker-compose.yml       ← ports 7777/8888, volumes, unless-stopped
+    ├── init-server.sh           ← SteamCMD install/validate + launch
+    └── *.sh                     ← build/run/interactive wrappers
 ```
 
-Game binaries, worlds, saves, and caches are **gitignored** (they're re-downloadable/generated).
-Everything tracked here is the engineering: scripts, containers, and configs.
+Game installs, worlds, saves and caches are **gitignored** (re-downloadable /
+generated); the commits contain only the engineering.
 
-## Factorio — `factorio-server/`
+## The servers, quickly
 
-| File | Purpose |
-| --- | --- |
-| `run.sh` | Screen-supervised launcher for the FactoCord3 bot; kills stale `factorio` processes, clears locks, and auto-restarts on crash. |
-| `update_factorio.sh` | Stops the server, backs up `saves/`, `mods/`, and `server-settings.json`, downloads the latest headless Linux build, restores config, restarts. |
-| `config/factocord.config.example.json` | FactoCord3 → Discord settings: bot token, chat channel, admin IDs, message templates. |
-| `config/server-settings.example.json` | Server name, visibility, RCON, autosave tuning. |
-| `config/mod-list.example.json` | Enabled mods: Space Age + quality + elevated rails. |
+| | Factorio | Minecraft | Satisfactory |
+| --- | --- | --- | --- |
+| **Version** | Space Age (2.x) | NeoForge 1.21.1 | latest dedicated server |
+| **How it runs** | native through FactoCord3 (x86_64 bin) | JVM (x86_64) on ARM64 | Docker + FEX-Emu |
+| **Supervision** | `screen` + auto-restart loop | `screen` | Compose `unless-stopped` |
+| **Ports** | 34197/udp, 34198/tcp | 25565/tcp | 7777, 8888 (udp+tcp) |
+| **Discord** | FactoCord3 + custom scenario | Simple Discord Link | — |
+| **Persistence** | `saves/`, `backups/` | `world/` | `config/` volume |
 
-Home is `/home/ubuntu/factorio-server`. Save: `harvard.zip` (Space Age).
-
-## Minecraft — `minecraft-server/`
-
-NeoForge **1.21.1** modpack (~45 mods: SecurityCraft, TaCZ, Farmer's Delight, Biomes O' Plenty,
-and friends). Tuned in `config/`; finds pick up where `user_jvm_args.txt` leaves off.
-
-| File | Purpose |
-| --- | --- |
-| `run.sh` | Restarts itself inside a `screen` session named `minecraft`, then boots NeoForge with tuned JVM args. |
-| `user_jvm_args.txt` | 16 GB heap for the modpack. |
-| `server.properties` | MOTD, PvP off, command blocks on, 20-player cap. |
-| `config/simple-discord-link/*.example.toml` | Discord ⇄ chat bridge: chat/event relays, player join/leave, deaths, advancements, /discord. |
-
-## Satisfactory — `satisfactory-server/`
-
-Full containerized approach — the reason x86_64-only Satisfactory runs on ARM64 at all:
-
-| File | Purpose |
-| --- | --- |
-| `Dockerfile` | Ubuntu 22.04 base `→` builds FEX-Emu from source (Clang/LLVM, LLD, Ninja, `binfmt_misc`) `→` installs SteamCMD `→` runs under the `steam` user. |
-| `init-server.sh` | Installs/validates the dedicated server via SteamCMD, applies the `steamclient.so` SDK64 symlink fix, launches `FactoryServer.sh`. |
-| `docker-compose.yml` | Ports `7777`/`8888`, persistent volumes (`./satisfactory`, `./config`), `restart: unless-stopped`, auto-update on start. |
-| `run.sh` / `build.sh` / `interactive-shell.sh` | Lifecycle wrappers. |
-
-## Getting started (from the Oracle box)
+## Day-to-day operations
 
 ```bash
 # Satisfactory
-cd satisfactory-server
-sh build.sh                          # builds the FEX + SteamCMD image (long)
-sudo docker compose up -d           # installs & starts the server
+cd satisfactory-server && sh build.sh && sudo docker compose up -d
+docker compose logs -f      # watch live
+sudo docker exec -it satisfactory-server bash   # interactive shell
 
-# Factorio
-cd factorio-server
-cp config/factocord.config.example.json FactoCord3/config.json   # fill in token
-sh update_factorio.sh                                           # installs + starts
+# Factorio (via FactoCord3, which auto-restarts on crash)
+cd factorio-server && sh run.sh
+sh update_factorio.sh       # safe update: backs up saves/mods/config first
 
 # Minecraft
-cd minecraft-server
-cp config/simple-discord-link/simple-discord-link.example.toml \
-   config/simple-discord-link/simple-discord-link.toml          # fill in token
-./run.sh
+cd minecraft-server && ./run.sh   # re-execs into `screen -r minecraft`
 ```
 
-You'll also need to open the relevant ports in the OCI **Security List** and iptables:
-`25565` (Minecraft), `7777–7778` (Factorio), `7777`/`8888` (Satisfactory), plus each
-Discord bridge's outbound HTTPS.
+## Getting started
+
+1. Provision a free-tier Ampere A1 instance, then on the box:
+   ```bash
+   sudo scripts/bootstrap.sh          # docker, compose, screen + Security-List guidance
+   ```
+2. Clone this repo to `/home/ubuntu/servers`.
+3. For each server, copy the `*.example.*` config to its real location and fill
+   in **your** tokens/webhooks/passwords. Run `python3 scripts/validate_configs.py`
+   to check the templates.
+4. Open the ports from [`docs/architecture.md`](docs/architecture.md#network) in the
+   Oracle Cloud **Security List**.
 
 ## Security notes
 
-Real configuration files are **gitignored** — they contain live Discord bot tokens, webhooks,
-channel IDs, and RCON credentials. Deploy by copying the `*.example.*` templates and filling in
-your own secrets.
+Real configs are **gitignored** — they contain live Discord tokens, webhooks, channel
+IDs, and RCON credentials (Simple Discord Link stores its token AES-encrypted, then
+re-encrypts on load). If this backup was ever shared, **rotate those bot tokens**.
+Only `*.example.*` templates are committed.
 
 ## Credits
 
-- [FEX-Emu](https://github.com/FEX-Emu/FEX) — x86_64 → ARM64 translation.
-- ARM64 Satisfactory image based on [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64).
+- [FEX-Emu](https://github.com/FEX-Emu/FEX) — x86_64 → ARM64 emulation.
+- [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64) — reference for the Satisfactory ARM64 container.
 - [FactoCord3](https://github.com/edg-l/factocord3) — Factorio ⇄ Discord bridge.
 - [Simple Discord Link](https://sdlink.fdd-docs.com/) — Minecraft ⇄ Discord bridge.
+- Factorio, Minecraft, and Satisfactory — property of their respective owners; no game
+  content is distributed here.
+
+## License
+
+[MIT](LICENSE)

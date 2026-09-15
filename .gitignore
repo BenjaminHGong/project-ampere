@@ -36,7 +36,6 @@ factorio-server/go/
 minecraft-server/config/simple-discord-link/simple-discord-link.toml
 minecraft-server/sdlinkstorage/
 factorio-server/FactoCord3/config.json
-factorio-server/factorio/data/server-settings.json
 
 # --- Player data (usernames / UUIDs) ----------------------------------
 minecraft-server/banned-ips.json
@@ -52,4 +51,4 @@ Thumbs.db
 .desktop.ini
 factorio-server/.exit
 **/.exit
-minecraft-server/run.bat  
+minecraft-server/run.bat
