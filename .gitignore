@@ -1,0 +1,55 @@
+# ------------------------------------------------------------------
+# Project Ampere — .gitignore
+# Game binaries and runtime state are re-downloadable/generated, and
+# secret-bearing files must never be committed. See *.example.* files
+# in-repo for the sanitized versions.
+# ------------------------------------------------------------------
+
+# --- Game installs / binaries (re-downloadable via scripts) ----------
+factorio-server/factorio/
+satisfactory-server/satisfactory/
+satisfactory-server/qt-online-installer-*
+minecraft-server/libraries/
+minecraft-server/mods/
+minecraft-server/world/
+minecraft-server/.cache/
+minecraft-server/.jar
+minecraft-server/server.jar
+minecraft-server/neoforge-*-installer.jar.log
+minecraft-server/tacz/
+minecraft-server/tacz+*/
+minecraft-server/tacz_backup/
+
+# --- Runtime state / logs / crash dumps -------------------------------
+minecraft-server/logs/
+minecraft-server/crash-reports/
+satisfactory-server/config/
+factorio-server/backups/
+
+# --- Vendored third-party repos / build caches ------------------------
+factorio-server/FactoCord3/
+factorio-server/go/
+
+# --- Secrets — DO NOT COMMIT (real configs) ---------------------------
+# Discord bridge configs contain live bot tokens, webhooks, and channel IDs.
+# Use the *.example.* / *.example.json templates instead.
+minecraft-server/config/simple-discord-link/simple-discord-link.toml
+minecraft-server/sdlinkstorage/
+factorio-server/FactoCord3/config.json
+factorio-server/factorio/data/server-settings.json
+
+# --- Player data (usernames / UUIDs) ----------------------------------
+minecraft-server/banned-ips.json
+minecraft-server/banned-players.json
+minecraft-server/whitelist.json
+minecraft-server/ops.json
+minecraft-server/usercache.json
+minecraft-server/usernamecache.json
+
+# --- Misc OS / editor junk --------------------------------------------
+.DS_Store
+Thumbs.db
+.desktop.ini
+factorio-server/.exit
+**/.exit
+minecraft-server/run.bat  

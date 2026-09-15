@@ -1,0 +1,14 @@
+# Normalize line endings; force LF for shell/config files (Linux-targeted project)
+* text=auto
+*.sh text eol=lf
+*.bash text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+*.jpg binary
+*.png binary
+*.jar binary
+*.zip binary
+*.run binary
