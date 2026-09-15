@@ -6,18 +6,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-```
-                 ┌─────────────────────────────────────────────────────────────┐
-                 │  Oracle Cloud · Ampere A1 · ARM64 · Ubuntu                  │
-                 │                                                             │
-  Discord ──────▶│   Factorio          Minecraft         Satisfactory          │
-  (FactoCord3 │   Space Age headless  NeoForge 1.21.1   Docker Compose        │
-   S-DiscLnk) │   screen + auto-rs    screen + 16G JVM   FEX-Emu (x86_64)     │
-                 │                                                             │
-                 │   x86_64 ──FEX────▶ x86_64 ──JVM──┘  x86_64 ──FEX──────┘  │
-                 └─────────────────────────────────────────────────────────────┘
-```
-
 ## Why this exists
 
 Oracle's free-tier Ampere A1 (ARM) instances are absurd value for hosting game
